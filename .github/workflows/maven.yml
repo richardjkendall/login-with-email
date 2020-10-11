@@ -27,3 +27,17 @@ jobs:
     - name: Build docker image
       run: |
         docker build -t keycloak-magic .
+    
+    - name: log in to docker
+      run: echo ${{secrets.DOCKERHUB_PASSWORD}} | docker login -u ${{secrets.DOCKERHUB_USERNAME}} --password-stdin
+    
+    - name: Get the tag for docker
+      id: vars
+      run: echo ::set-output name=tag::$(echo ${GITHUB_SHA::8})
+      
+    - name: docker publish
+      run: |
+        docker tag keycloak-magic ${{secrets.DOCKERHUB_USERNAME}}/keycloak-magic:${{steps.vars.outputs.tag}}
+        docker tag keycloak-magic ${{secrets.DOCKERHUB_USERNAME}}/keycloak-magic:latest
+        docker push ${{secrets.DOCKERHUB_USERNAME}}/keycloak-magic:${{steps.vars.outputs.tag}}
+        docker push ${{secrets.DOCKERHUB_USERNAME}}/keycloak-magic:latest
