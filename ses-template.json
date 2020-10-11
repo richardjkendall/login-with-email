@@ -1,0 +1,8 @@
+{
+  "Template": {
+    "TemplateName": "KeycloakMagicLink",
+    "SubjectPart": "Link to access our RFP site!",
+    "HtmlPart": "<h1>Hello {{email}},</h1><p>Click here to access the site <a href=\"{{link}}\">{{link}}</a></p>",
+    "TextPart": "Dear {{email}},\r\nClick here to access the site {{link}}."
+  }
+}
