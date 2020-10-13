@@ -9,7 +9,7 @@
             <form id="kc-form-login" class="${properties.kcFormClass!}" onsubmit="login.disabled = true; return true;" action="${url.loginAction}" method="post">
                 <div class="${properties.kcFormGroupClass!}">
                     <div class="${properties.kcLabelWrapperClass!}">
-                        <label for="email" class="${properties.kcLabelClass!}">${msg("email")}</label>
+                        <label for="email" class="${properties.kcLabelClass!}">Welcome!  Please enter your email address to gain access.</label>
                     </div>
 
                     <div class="${properties.kcInputWrapperClass!}">
