@@ -6,8 +6,8 @@ name: Build war and package with keycloak in docker image
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    paths-ignore:
+      - '**/README.md'
 
 jobs:
   build:
