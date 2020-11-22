@@ -9,11 +9,12 @@
             <form id="kc-form-login" class="${properties.kcFormClass!}" onsubmit="login.disabled = true; return true;" action="${url.loginAction}" method="post">
                 <div class="${properties.kcFormGroupClass!}">
                     <div class="${properties.kcLabelWrapperClass!}">
-                        <label for="email" class="${properties.kcLabelClass!}">Welcome!  Please enter your email address to gain access.</label>
+                        <label for="email" class="${properties.welcomeHeadingClass!}">Welcome!</label>
+                        <p class="${properties.welcomeTextClass!}">${(properties.welcomeText)!"Please enter your email address to continue"}</p>
                     </div>
 
                     <div class="${properties.kcInputWrapperClass!}">
-                        <input tabindex="1" id="email" class="${properties.kcInputClass!}" name="email"  type="text" autofocus autocomplete="off" />
+                        <input tabindex="1" id="email" class="${properties.kcInputClass!}" placeholder="Enter your email address" name="email" type="text" autofocus autocomplete="off" />
                     </div>
                 </div>
 
