@@ -56,6 +56,15 @@ public class EmailLinkAuthenticatorFactory implements AuthenticatorFactory {
         sesTemplate.setType(ProviderConfigProperty.STRING_TYPE);
         sesTemplate.setHelpText("The name of the AWS SES template used to send emails");
         configProperties.add(sesTemplate);
+
+        ProviderConfigProperty createUsers;
+        createUsers = new ProviderConfigProperty();
+        createUsers.setName("user.create");
+        createUsers.setLabel("Create users on demand");
+        createUsers.setType(ProviderConfigProperty.BOOLEAN_TYPE);
+        createUsers.setDefaultValue("true");
+        createUsers.setHelpText("Should users be created if they don't exist? If turned off then domain suffix validation will not work");
+        configProperties.add(createUsers);
     }
 
     private static final AuthenticationExecutionModel.Requirement[] REQUIREMENT_CHOICES = {
