@@ -3,7 +3,9 @@
 
 # login-with-email
 
-A Keycloak SPI which implements a 'magic-link' solution.
+A Keycloak SPI which implements a 'magic-link' solution.  It has support to create users on demand or only allow pre-registered users.
+
+For on-demand creation it checks the email domain against a list of allowed domains.
 
 It is designed to run in AWS environments with access to the Simple Email Sending (SES) service.
 
