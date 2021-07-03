@@ -38,48 +38,85 @@ public class EmailLinkAuthenticator extends AbstractUsernameFormAuthenticator im
         // get config
         Map<String, String> config = context.getAuthenticatorConfig().getConfig();
 
-        // check email address is from an allowed domain
-        String allowedDomains = config.get("email.allowed.suffix");
-        logger.info("Allowed domains found: " + allowedDomains);
-        List<String> allowedDomainsList = Arrays.asList(allowedDomains.split(","));
-        String[] emailAddressBits = email.toLowerCase().split("@");
-        String emailSuffix = emailAddressBits[emailAddressBits.length - 1];
-        logger.info("Email suffix on request: " + emailSuffix);
-        if(!allowedDomainsList.contains(emailSuffix)) {
-            logger.info("Email suffix does not match allowed domains");
-            context.failure(AuthenticationFlowError.INVALID_CREDENTIALS);
+        // get create user config
+        boolean createUsers = config.get("user.create").equals("true");
+
+        // if create user is turned on then first we check the domain suffix
+
+        if(createUsers) {
+            logger.info("Create users is enabled.");
+            // check email address is from an allowed domain
+            String allowedDomains = config.get("email.allowed.suffix");
+            logger.info("Allowed domains found: " + allowedDomains);
+            List<String> allowedDomainsList = Arrays.asList(allowedDomains.split(","));
+            String[] emailAddressBits = email.toLowerCase().split("@");
+            String emailSuffix = emailAddressBits[emailAddressBits.length - 1];
+            logger.info("Email suffix on request: " + emailSuffix);
+            if (!allowedDomainsList.contains(emailSuffix)) {
+                logger.info("Email suffix does not match allowed domains");
+                context.failure(AuthenticationFlowError.INVALID_CREDENTIALS);
+            } else {
+                logger.info("Email suffix matches an allowed domain");
+
+                // handle user
+                UserModel user = context.getSession().users().getUserByEmail(email, context.getRealm());
+                if (user == null) {
+                    // Register user
+                    user = context.getSession().users().addUser(context.getRealm(), email);
+                    user.setEnabled(true);
+                    user.setEmail(email);
+                }
+
+                // generate key and store it
+                String key = KeycloakModelUtils.generateId();
+                context.getAuthenticationSession().setAuthNote("email-key", key);
+
+                // generate link
+                String link = KeycloakUriBuilder.fromUri(context.getRefreshExecutionUrl()).queryParam("key", key).build().toString();
+
+                try {
+                    // send email
+                    HashMap<String, String> fields = new HashMap<>();
+                    fields.put("email", email);
+                    fields.put("link", link);
+                    EmailSender sender = new EmailSender(config.get("aws.region"));
+                    sender.sendWithTemplate(email, config.get("email.from.address"), config.get("email.ses.template"), fields);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                context.setUser(user);
+                context.challenge(context.form().createForm("view-email.ftl"));
+            }
         } else {
-            logger.info("Email suffix matches an allowed domain");
-
-            // handle user
+            logger.info("Create users is disabled");
+            // lookup user
             UserModel user = context.getSession().users().getUserByEmail(email, context.getRealm());
-            if (user == null) {
-                // Register user
-                user = context.getSession().users().addUser(context.getRealm(), email);
-                user.setEnabled(true);
-                user.setEmail(email);
+            if(user == null) {
+                logger.info("User does not exist");
+                context.failure(AuthenticationFlowError.INVALID_CREDENTIALS);
+            } else {
+                // generate key and store it
+                String key = KeycloakModelUtils.generateId();
+                context.getAuthenticationSession().setAuthNote("email-key", key);
+
+                // generate link
+                String link = KeycloakUriBuilder.fromUri(context.getRefreshExecutionUrl()).queryParam("key", key).build().toString();
+
+                try {
+                    // send email
+                    HashMap<String, String> fields = new HashMap<>();
+                    fields.put("email", email);
+                    fields.put("link", link);
+                    EmailSender sender = new EmailSender(config.get("aws.region"));
+                    sender.sendWithTemplate(email, config.get("email.from.address"), config.get("email.ses.template"), fields);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                context.setUser(user);
+                context.challenge(context.form().createForm("view-email.ftl"));
             }
-
-            // generate key and store it
-            String key = KeycloakModelUtils.generateId();
-            context.getAuthenticationSession().setAuthNote("email-key", key);
-
-            // generate link
-            String link = KeycloakUriBuilder.fromUri(context.getRefreshExecutionUrl()).queryParam("key", key).build().toString();
-
-            try {
-                // send email
-                HashMap<String, String> fields = new HashMap<>();
-                fields.put("email", email);
-                fields.put("link", link);
-                EmailSender sender = new EmailSender(config.get("aws.region"));
-                sender.sendWithTemplate(email, config.get("email.from.address"), config.get("email.ses.template"), fields);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            context.setUser(user);
-            context.challenge(context.form().createForm("view-email.ftl"));
         }
     }
 
