@@ -124,7 +124,7 @@ public class EmailLinkAuthenticator extends AbstractUsernameFormAuthenticator im
     public void authenticate(AuthenticationFlowContext context) {
         String sessionKey = context.getAuthenticationSession().getAuthNote("email-key");
         if (sessionKey != null) {
-            String requestKey = context.getHttpRequest().getUri().getQueryParameters().getFirst("key");
+            String requestKey = context.getSession().getContext().getUri().getQueryParameters().getFirst("key");
             if (requestKey != null) {
                 if (requestKey.equals(sessionKey)) {
                     context.success();
